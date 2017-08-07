@@ -1,0 +1,53 @@
+@import url('https://fonts.googleapis.com/css?family=Poiret+One');
+
+h1, h2, h3, h4, th, p{
+  font-family: 'Poiret One', cursive;
+  color: white;
+}
+
+html {
+  height: 100%;
+}
+
+body {
+  padding: 5%;
+
+  min-height: 80%;
+
+  background:
+    -webkit-linear-gradient(45deg, hsla(325, 98%, 42%, 1) 0%, hsla(325, 98%, 42%, 0) 70%),
+    -webkit-linear-gradient(315deg, hsla(137, 93%, 46%, 1) 10%, hsla(137, 93%, 46%, 0) 80%),
+    -webkit-linear-gradient(225deg, hsla(66, 96%, 47%, 1) 10%, hsla(66, 96%, 47%, 0) 80%),
+    -webkit-linear-gradient(135deg, hsla(316, 93%, 50%, 1) 100%, hsla(316, 93%, 50%, 0) 70%);
+
+  background:
+    linear-gradient(45deg, hsla(325, 98%, 42%, 1) 0%, hsla(325, 98%, 42%, 0) 70%),
+    linear-gradient(135deg, hsla(137, 93%, 46%, 1) 10%, hsla(137, 93%, 46%, 0) 80%),
+    linear-gradient(225deg, hsla(66, 96%, 47%, 1) 10%, hsla(66, 96%, 47%, 0) 80%),
+    linear-gradient(315deg, hsla(316, 93%, 50%, 1) 100%, hsla(316, 93%, 50%, 0) 70%);
+  
+ 
+  background-size: auto;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+
+  margin: auto;
+  padding: auto;
+}
+
+h1 {
+  margin-bottom: 50px;
+  font-size: 50px;
+}
+
+#root {
+
+}
+
+.centre{
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+}
+

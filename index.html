@@ -1,0 +1,19 @@
+<html>
+  <body>
+    <p id='server-time'></p>
+    <p id='client-id'></p>
+    <script>
+      var HOST = location.origin.replace(/^http/, 'ws')
+      var ws = new WebSocket(HOST);
+      var el = document.getElementById('server-time');
+      var fl = document.getElementById("client-id");
+
+      ws.onmessage = function (event) {
+        var json_data = JSON.parse(event.data);
+
+        el.innerHTML = 'Server time: ' + json_data.time;
+        //fl.innerHTML = "Client ID: " + json_data.id;
+      };
+    </script>
+  </body>
+</html>
