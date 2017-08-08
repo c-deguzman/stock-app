@@ -49,6 +49,8 @@
     "react-d3-core": "*",
     "body-parser": "^1.17.2",
     "prop-types": "*",
-    "immutability-helper": "*"
+    "immutability-helper": "*",
+    "react-linechart": "^1.1.9",
+    "d3": "*"
   }
 }
