@@ -14,6 +14,9 @@ body {
 
   min-height: 80%;
 
+  margin: 0px auto;
+  width: 1200px;
+
   background:
     -webkit-linear-gradient(45deg, hsla(325, 98%, 42%, 1) 0%, hsla(325, 98%, 42%, 0) 70%),
     -webkit-linear-gradient(315deg, hsla(137, 93%, 46%, 1) 10%, hsla(137, 93%, 46%, 0) 80%),
@@ -49,5 +52,14 @@ h1 {
   width: 100%;
   align-items: center;
   justify-content: center;
+}
+
+#chart_wrapper{
+  background: white;
+  opacity: 0.9;
+  border-radius: 15px;
+  border: solid;
+  width: 1000px;
+  margin: 50px auto;
 }
 
