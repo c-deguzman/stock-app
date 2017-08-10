@@ -1,4 +1,4 @@
-# Node.js WebSocket Example
+# Synchronous Stock View App via WebSocket 
 
 This example accompanies the
 [Using WebSockets on Heroku with Node.js](https://devcenter.heroku.com/articles/node-websockets)
