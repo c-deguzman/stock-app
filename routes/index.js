@@ -105,7 +105,6 @@ module.exports = {
 						        if (err){
 						        	response.send({"result": "error",
 					        					   "error": "Already following stock."});
-						          throw err;
 						          return;
 						        }
 
@@ -131,5 +130,51 @@ module.exports = {
 				}
 			});
 		});
+	},
+
+	rm_stock(app, wss){
+		var MongoClient = require('mongodb').MongoClient;
+
+		app.post("/rm_stock", function(request, response){
+
+			MongoClient.connect(process.env.MONGO_CONNECT, function (err, db){
+			    if (err){
+			      throw err;
+			      return;
+			    }
+
+			    db.collection("stock_list", function (err, collection){
+
+		        	if (err){
+	        			throw err;
+		        		return;
+	      			}
+
+	      			collection.remove({ticker: request.body.ticker}, function(err, res){
+	      				if (err){
+	      					response.send({"result": "error",
+	      								   "error": "Error encountered in removing. Item may have been already removed by anothe user."});
+	      				}
+
+	      				collection.find({}).toArray(function (err, documents) {
+
+					        if (err){
+					          throw err;
+					          return;
+					        }
+
+					        for (var i in wss.clients){
+					        	wss.clients[i].send(JSON.stringify({stock_list: documents}));
+					        }
+				        
+
+					       	response.send({
+				       			"result": "success"
+				       		});
+				    	}); 
+	      			});
+	      		});
+			 });
+		});     			
 	}
 }

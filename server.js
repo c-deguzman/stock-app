@@ -1,4 +1,6 @@
 require('dotenv').config();
+require('babel-core/register');
+require('css-modules-require-hook/preset');
 
 process.env.ROOT = __dirname;
 
@@ -18,6 +20,8 @@ var app = express();
 var compiler = webpack(config);
 
 var bodyParser = require('body-parser');
+
+
 
 // ------------------------------------------------------------ SERVER VARS ---------------------------------------------------------------------
 
@@ -65,6 +69,7 @@ var routes = require('./routes');
 routes.get_start(app);
 routes.get_stock(app);
 routes.add_stock(app, wss);
+routes.rm_stock(app, wss);
 routes.home(app);
 
 
@@ -76,7 +81,8 @@ setInterval(() => {
 
   async.each(wss.clients, function(client, callback) {
     client.send( JSON.stringify({
-      time: new Date().toTimeString()
+      time: new Date().toTimeString(),
+      active: wss.clients.length
     }));
   });
     

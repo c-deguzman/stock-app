@@ -6,6 +6,9 @@ import { Chart } from 'react-d3-core';
 import { LineChart } from 'react-d3-basic';
 import { LineTooltip, SimpleTooltip } from 'react-d3-tooltip';
 
+import 'react-date-picker/index.css'
+import { DateField, Calendar } from 'react-date-picker'
+
 import Alert from './Alert';
 
 
@@ -32,6 +35,15 @@ export default class HomePage extends React.Component {
 
     this.handleSubmit = this.handleSubmit.bind(this);
     this.changeStock = this.changeStock.bind(this);
+    this.remove_stock = this.remove_stock.bind(this);
+
+    this.onChangeDate = this.onChangeDate.bind(this);
+    this.changeDays = this.changeDays.bind(this);
+
+
+    var today = new Date();
+    var today_str = "" + today.getFullYear() + "-" + this.pad_two(today.getMonth() + 1) + "-" + this.pad_two(today.getDate());
+
 
     this.state = {
       time: "",
@@ -46,7 +58,13 @@ export default class HomePage extends React.Component {
       add_error: "",
       add_status: "n/a",
       add_show: true,
-      new_stock: ""
+      rm_error: "",
+      rm_status: "n/a",
+      rm_show: true,
+      new_stock: "",
+      curr_date: today_str,
+      active: 0,
+      days: 365
     }
   }
 
@@ -80,11 +98,11 @@ export default class HomePage extends React.Component {
     return "" + date.getFullYear() + "-" + this.pad_two(date.getMonth() + 1) + "-" + this.pad_two(date.getDate());
   }
 
-  collect_chart_data(days){
-    var curr_time = new Date();
+  collect_chart_data(){
+    var curr_time = new Date(this.state.curr_date);
     var chart_data = [];
 
-    for (var i = 0; i <= days; i++){
+    for (var i = 0; i <= this.state.days; i++){
       var date_str = this.add_date(curr_time.getFullYear(), curr_time.getMonth(), curr_time.getDate(), i * -1);
 
       var local_obj = {time: date_str};
@@ -137,7 +155,7 @@ export default class HomePage extends React.Component {
       }
     }
 
-    this.collect_chart_data(365);
+    this.changeDays(365);
   }
 
   //Use for adding data
@@ -221,8 +239,11 @@ export default class HomePage extends React.Component {
     if (result.hasOwnProperty("stock_list")){
       this.update_data(result.stock_list);
       this.rectify_current(result.stock_list);
-    } 
-    
+    }
+
+    if (result.hasOwnProperty("active")){
+      this.setState({active: result.active});
+    }     
   }
 
   handleSubmit(event){
@@ -250,10 +271,45 @@ export default class HomePage extends React.Component {
     });
   }
 
+  remove_stock(stock_name){
+    $.ajax({
+      type: "POST",
+      url: "/rm_stock",
+      contentType: 'application/json',
+      data: JSON.stringify({ticker: stock_name}),
+    }).done((data) => {
+      if (data.result == "error"){
+        this.setState({
+          rm_status: data.result,
+          rm_error: data.error,
+          rm_show: true
+        });
+      } else {
+        this.setState({
+          rm_status: data.result,
+          rm_show: true
+        })
+      }
+    });
+  }
+
   changeStock(event){
     this.setState({
       new_stock: event.target.value
     });
+  }
+
+  onChangeDate(dateString, { dateMoment, timestamp }){
+
+    if (dateString.indexOf("-") != -1){
+      this.setState({
+        curr_date: dateString
+      }, this.collect_chart_data);
+    }
+  }
+
+  changeDays(days){
+    this.setState({ days: days}, this.collect_chart_data);
   }
 
 
@@ -262,17 +318,25 @@ export default class HomePage extends React.Component {
     return (
       <div>
         <h1> Stock App Delta </h1>
-        <button className="btn btn-default" 
-                onClick={() => console.log(this.state)}> State Log </button>
-        <p> {this.state.time} </p>
+        <p> Server time: {this.state.time} </p>
+        <p> {this.state.active} users online now. </p>
 
-        <div className="btn-group">
-            <button className="btn btn-default" onClick={() => this.collect_chart_data(7)}>1 week</button>
-            <button className="btn btn-default" onClick={() => this.collect_chart_data(31)}>1 Month</button>
-            <button className="btn btn-default" onClick={() => this.collect_chart_data(180)}>6 Months</button>
-            <button className="btn btn-default" onClick={() => this.collect_chart_data(365)}>1 Year</button>
-            <button className="btn btn-default" onClick={() => this.collect_chart_data(365 * 5)}>5 Years</button>
-          </div>
+        <div className="centre">
+          <h2> Select End Date : &nbsp; </h2>
+          <DateField 
+            dateFormat="YYYY-MM-DD"
+            date={this.state.curr_date}
+            onChange={this.onChangeDate}
+            clearDate="2010-01-01" />
+        </div>
+
+        <div className="btn-group centre">
+          <button className="btn btn-default" onClick={() => this.changeDays(7)}>1 week</button>
+          <button className="btn btn-default" onClick={() => this.changeDays(31)}>1 Month</button>
+          <button className="btn btn-default" onClick={() => this.changeDays(180)}>6 Months</button>
+          <button className="btn btn-default" onClick={() => this.changeDays(365)}>1 Year</button>
+          <button className="btn btn-default" onClick={() => this.changeDays(365 * 5)}>5 Years</button>
+        </div>
 
 
         { 
@@ -302,7 +366,8 @@ export default class HomePage extends React.Component {
             </div>
           </div>
 
-          <Alert show={this.state.add_show} changeShow={() => this.setState({add_show: false})} result={this.state.add_status} error={this.state.add_error} success={"Your stock has been added successfully."} /> :
+          <Alert show={this.state.add_show} changeShow={() => this.setState({add_show: false})} result={this.state.add_status} error={this.state.add_error} success={"Stock has been added successfully."} /> :
+          <Alert show={this.state.rm_show} changeShow={() => this.setState({rm_show: false})} result={this.state.rm_status} error={this.state.rm_error} success={"Stock has been removed successfully."} /> :
 
           <form onSubmit={this.handleSubmit}>
             <div className="form-group container">
@@ -315,9 +380,17 @@ export default class HomePage extends React.Component {
             </div>
           </form>
 
+          <ul className="list-group">
+            {this.state.current_list.map((stock_name) => 
+              <li className="list-group-item" key={stock_name}>{stock_name}<span className="close" data-dismiss="alert" onClick={() => this.remove_stock(stock_name)}>&times;</span></li>)}
+
+          </ul>
+
           </div>:
           <h2> Page is Loading ... </h2>
         }
+
+
         
      </div>);
   }

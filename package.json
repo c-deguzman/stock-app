@@ -52,6 +52,11 @@
     "immutability-helper": "*",
     "react-linechart": "^1.1.9",
     "d3": "*",
-    "d3-array": "*"
+    "d3-array": "*",
+    "react-date-picker": "^5.3.28",
+    "moment": "^2.18.1",
+    "css-loader": "*",
+    "style-loader": "*",
+    "css-modules-require-hook": "^4.0.0"
   }
 }
