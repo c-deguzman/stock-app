@@ -64,6 +64,7 @@ var routes = require('./routes');
 
 routes.get_start(app);
 routes.get_stock(app);
+routes.add_stock(app, wss);
 routes.home(app);
 
 

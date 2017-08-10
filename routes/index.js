@@ -63,10 +63,72 @@ module.exports = {
 		// Provide clients with stock information, based on passed ticker
 		app.post("/get_stock", function(request, response){
 
-			var url = "https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=" + request.body.ticker + "&outputsize=full&apikey=" + process.env.ALPHA
+			var url = "https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=" + request.body.ticker + "&outputsize=full&apikey=" + process.env.ALPHA;
 
 			_request(url, function(error, res, body){
 				response.send(body);
+			});
+		});
+	},
+
+	add_stock(app, wss){
+		var _request = require("request");
+		var MongoClient = require('mongodb').MongoClient;
+
+		app.post("/add_stock", function(request, response){
+
+			var url = "https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=" + request.body.ticker + "&apikey=" + process.env.ALPHA;
+
+
+			_request(url, function(error, res, body){
+				if (JSON.parse(body).hasOwnProperty("Error Message")){
+
+					response.send({"result": "error",
+								   "error": "Invalid stock ticker."});
+					return;
+				} else {
+					MongoClient.connect(process.env.MONGO_CONNECT, function (err, db){
+					    if (err){
+					      throw err;
+					      return;
+					    }
+
+					    db.collection("stock_list", function (err, collection){
+
+				        	if (err){
+			        			throw err;
+				        		return;
+			      			}
+
+		        			collection.insert({ticker: request.body.ticker}, function (err, docs_added) {
+
+						        if (err){
+						        	response.send({"result": "error",
+					        					   "error": "Already following stock."});
+						          throw err;
+						          return;
+						        }
+
+					        	collection.find({}).toArray(function (err, documents) {
+
+							        if (err){
+							          throw err;
+							          return;
+							        }
+
+							        for (var i in wss.clients){
+							        	wss.clients[i].send(JSON.stringify({stock_list: documents}));
+							        }
+						        
+
+							       	response.send({
+						       			"result": "success"
+						       		});
+						    	}); 
+			        		}); 
+					    });
+				  	});
+				}
 			});
 		});
 	}

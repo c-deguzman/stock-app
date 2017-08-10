@@ -6,6 +6,8 @@ import { Chart } from 'react-d3-core';
 import { LineChart } from 'react-d3-basic';
 import { LineTooltip, SimpleTooltip } from 'react-d3-tooltip';
 
+import Alert from './Alert';
+
 
 export default class HomePage extends React.Component {
   
@@ -14,10 +16,12 @@ export default class HomePage extends React.Component {
 
     this.render = this.render.bind(this);
     this.componentDidMount = this.componentDidMount.bind(this);
+
     this.handleData = this.handleData.bind(this);
     this.update_data = this.update_data.bind(this);
     this.rectify_current = this.rectify_current.bind(this);
     this.select_ticker = this.select_ticker.bind(this);
+    this.in_obj_arr = this.in_obj_arr.bind(this);
 
     this.add_date = this.add_date.bind(this);
     this.pad_two = this.pad_two.bind(this);
@@ -25,6 +29,9 @@ export default class HomePage extends React.Component {
     this.finished_async_calls = this.finished_async_calls.bind(this);
 
     this.xAccessor = this.xAccessor.bind(this);
+
+    this.handleSubmit = this.handleSubmit.bind(this);
+    this.changeStock = this.changeStock.bind(this);
 
     this.state = {
       time: "",
@@ -35,7 +42,11 @@ export default class HomePage extends React.Component {
       historical: [],
       chart_data: [],
       chart_series: [],
-      require_update: true
+      require_update: true,
+      add_error: "",
+      add_status: "n/a",
+      add_show: true,
+      new_stock: ""
     }
   }
 
@@ -127,10 +138,9 @@ export default class HomePage extends React.Component {
     }
 
     this.collect_chart_data(365);
-    console.log("Finished all async calls. State has been updated.");
   }
 
-
+  //Use for adding data
   update_data(stock_data){
 
     $.each(stock_data, (ind, item) => {
@@ -156,15 +166,28 @@ export default class HomePage extends React.Component {
           current_list: this.state.current_list.concat([stock_name]),
           current_data: this.state.current_data.concat([this.state[stock_name]])
         }, () => this.finished_async_calls(stock_data));
+      } else {
+        this.finished_async_calls(stock_data);
       }
     });
   }
 
 
+  in_obj_arr(obj_array, selector, key){
+    for (var i in obj_array){
+      if (obj_array[i][selector] == key){
+        return true;
+      }
+    }
+    return false;
+  }
+
+
+  // Use for removing data
   rectify_current(stock_data){
     this.setState({
-      current_list: this.state.current_list.filter(stock => (stock_data.indexOf(stock) != -1)),
-      current_data: this.state.current_data.filter(datum => (stock_data.indexOf(datum["Meta Data"]["2. Symbol"]) != -1))
+      current_list: this.state.current_list.filter(stock => this.in_obj_arr(stock_data, "ticker", stock)),
+      current_data: this.state.current_data.filter(datum => this.in_obj_arr(stock_data, "ticker", datum["Meta Data"]["2. Symbol"]))
     }, () => this.finished_async_calls(stock_data));
   }
 
@@ -178,7 +201,7 @@ export default class HomePage extends React.Component {
     }).done((data) => {
 
       this.update_data(data.stock_list);
-      this.rectify_current(data.stock_list);
+      //this.rectify_current(data.stock_list);
 
       this.setState({
         ws_url: data.origin.replace(/^http/, 'ws'),
@@ -190,7 +213,47 @@ export default class HomePage extends React.Component {
   
   handleData(data){
     var result = JSON.parse(data);
-    this.setState({time: result.time});
+
+    if (result.hasOwnProperty("time")){
+      this.setState({time: result.time});
+    } 
+
+    if (result.hasOwnProperty("stock_list")){
+      this.update_data(result.stock_list);
+      this.rectify_current(result.stock_list);
+    } 
+    
+  }
+
+  handleSubmit(event){
+    event.preventDefault();
+
+    $.ajax({
+      type: "POST",
+      url: "/add_stock",
+      contentType: 'application/json',
+      data: JSON.stringify({ticker: this.state.new_stock}),
+    }).done((data) => {
+      if (data.result == "error"){
+        this.setState({
+          add_status: data.result,
+          add_error: data.error,
+          add_show: true
+        });
+      } else {
+        this.setState({
+          add_status: data.result,
+          new_stock: "",
+          add_show: true
+        })
+      }
+    });
+  }
+
+  changeStock(event){
+    this.setState({
+      new_stock: event.target.value
+    });
   }
 
 
@@ -231,16 +294,29 @@ export default class HomePage extends React.Component {
               xScale="time" 
               xLabel="Date"
               yLabel="Stock Price (USD)"
+              showXGrid={false}
 
             >
               <SimpleTooltip />
             </LineTooltip>
             </div>
           </div>
-          
+
+          <Alert show={this.state.add_show} changeShow={() => this.setState({add_show: false})} result={this.state.add_status} error={this.state.add_error} success={"Your stock has been added successfully."} /> :
+
+          <form onSubmit={this.handleSubmit}>
+            <div className="form-group container">
+              <div className="col-sm-7 col-sm-offset-2">
+                <input id="new_option" type="text" className="form-control" placeholder="New Stock (Ticker)" onChange={this.changeStock} value={this.state.new_stock} pattern="^((NYSE|AMEX|NASDAQ):)?([A-Z]{1,4})$" required/>
+              </div>
+              <div className="col-sm-2">
+                <button type="submit" className="btn btn-default">Add Stock<i className="fa fa-paper-plane" aria-hidden="true"></i></button>
+              </div>
+            </div>
+          </form>
 
           </div>:
-          null
+          <h2> Page is Loading ... </h2>
         }
         
      </div>);
