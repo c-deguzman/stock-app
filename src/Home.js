@@ -372,7 +372,7 @@ export default class HomePage extends React.Component {
           <form onSubmit={this.handleSubmit}>
             <div className="form-group container">
               <div className="col-sm-7 col-sm-offset-2">
-                <input id="new_option" type="text" className="form-control" placeholder="New Stock (Ticker)" onChange={this.changeStock} value={this.state.new_stock} pattern="^((NYSE|AMEX|NASDAQ):)?([A-Z]{1,4})$" required/>
+                <input id="new_option" type="text" className="form-control" placeholder="New Stock (Ticker)" onChange={this.changeStock} value={this.state.new_stock} pattern="^((NYSE|AMEX|NASDAQ):)?([A-Z]{1,6})$" required/>
               </div>
               <div className="col-sm-2">
                 <button type="submit" className="btn btn-default">Add Stock<i className="fa fa-paper-plane" aria-hidden="true"></i></button>
